@@ -12,7 +12,7 @@ import (
 	"github.com/gokrazy/gokrazy"
 )
 
-var container = "ghcr.io/apptainer/lolcow:latest"
+var container = "quay.io/podman/hello"
 
 func podman(args ...string) error {
 	podman := exec.Command("/usr/local/bin/podman", args...)
