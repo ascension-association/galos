@@ -12,7 +12,7 @@ import (
 	"github.com/gokrazy/gokrazy"
 )
 
-var container = "quay.io/podman/hello"
+var container = "quay.io/podman/hello:latest"
 
 func podman(args ...string) error {
 	podman := exec.Command("/usr/local/bin/podman", args...)
@@ -47,8 +47,7 @@ func galos() error {
 	}
 
 	if err := podman("run",
-		"-td",
-		"-v", "/perm/galos:/perm/galos",
+		"-d",
 		"-e", "TERM=rxvt-unicode",
 		"-e", "LANG=C.UTF-8",
 		"--network", "host",
