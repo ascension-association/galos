@@ -47,13 +47,9 @@ func galos() error {
 	}
 
 	if err := podman("run",
-		"-d",
-		"-e", "TERM=rxvt-unicode",
-		"-e", "LANG=C.UTF-8",
 		"--network", "host",
 		"--name", "galos",
-		container,
-		"screen", "-S", "galos", "galos"); err != nil {
+		container); err != nil {
 		return err
 	}
 
