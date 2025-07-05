@@ -48,7 +48,7 @@ func galos() error {
 
 	if err := podman("run",
 		"-td",
-		"-v", "/perm/galos:~/galos",
+		"-v", "/perm/galos:/perm/galos",
 		"-e", "TERM=rxvt-unicode",
 		"-e", "LANG=C.UTF-8",
 		"--network", "host",
