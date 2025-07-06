@@ -12,8 +12,6 @@ import (
 	"github.com/gokrazy/gokrazy"
 )
 
-var container = "quay.io/podman/hello:latest"
-
 func podman(args ...string) error {
 	podman := exec.Command("/usr/local/bin/podman", args...)
 	podman.Env = expandPath(os.Environ())
@@ -40,6 +38,11 @@ func galos() error {
 
 	if err := podman("rm", "galos"); err != nil {
 		log.Print(err)
+	}
+
+    container := os.Getenv("GALOS_CONTAINER")
+	if container == "" {
+		container = "quay.io/podman/hello:latest"
 	}
 
 	if err := podman("pull", container); err != nil {
