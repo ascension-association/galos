@@ -40,10 +40,7 @@ func galos() error {
 		log.Print(err)
 	}
 
-	container := os.Getenv("GALOS_CONTAINER")
-	if container == "" {
-		container = "quay.io/podman/hello:latest"
-	}
+	container = "quay.io/podman/hello:latest"
 
 	if err := podman("pull", container); err != nil {
 		log.Print(err)
