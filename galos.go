@@ -40,7 +40,7 @@ func galos() error {
 		log.Print(err)
 	}
 
-    container := os.Getenv("GALOS_CONTAINER")
+	container := os.Getenv("GALOS_CONTAINER")
 	if container == "" {
 		container = "quay.io/podman/hello:latest"
 	}
