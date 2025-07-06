@@ -40,7 +40,7 @@ func galos() error {
 		log.Print(err)
 	}
 
-	container = "quay.io/podman/hello:latest"
+	var container = "quay.io/podman/hello:latest"
 
 	if err := podman("pull", container); err != nil {
 		log.Print(err)
