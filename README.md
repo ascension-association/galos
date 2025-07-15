@@ -7,7 +7,7 @@ Inspired by projects like [CoreOS](https://github.com/coreos), [RancherOS](https
 _Note: As you probably guessed, the name 'Galos' is a nod to **g**okrazy and T**alos** Linux (unless you're a Sidero Labs lawyer, in which case it's a tribute to the **Gal**ápag**os** Islands)_
 
 ### Instructions
-1. Include in your gokrazy instance: `gok new`
+1. Create a new gokrazy instance: `gok new`
    
 2. Add Galos and its dependencies:
 
