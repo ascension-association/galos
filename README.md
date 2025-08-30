@@ -16,26 +16,26 @@ _Note: As you probably guessed, the name 'Galos' is a nod to **g**okrazy and T**
 ### Instructions
 1. Create a new gokrazy instance: `gok new`
 
-IF running on x86/amd64, run `gok edit` and perform the following then save:
-
-  - add this line under the "Hostname" line: `"KernelPackage": "github.com/gokrazy/kernel.amd64",`
-  - change `"GOARCH=arm64"` to `"GOARCH=amd64"`
-
-2. Add Galos and its dependencies:
-
-```
-gok add github.com/gokrazy/mkfs
-gok add github.com/ascension-association/galos
-```
-
-3. Set desired container in your gokrazy config.json _PackageConfig_ section:
+2. Run `gok edit` and add your desired container in the _PackageConfig_ section:
 
 ```
 "github.com/ascension-association/galos": {
     "GoBuildFlags": [
-        "-ldflags=-X main.container=docker.io/library/hello-world:latest"
+        "-ldflags=-X main.container=docker.io/msoap/ascii-art cowsay 'Hello World'"
     ]
 }
+```
+
+**IF running on x86/amd64**, do the following then save:
+
+  - add this line under the "Hostname" line: `"KernelPackage": "github.com/gokrazy/kernel.amd64",`
+  - change `"GOARCH=arm64"` to `"GOARCH=amd64"`
+
+3. Add Galos and its dependencies:
+
+```
+gok add github.com/gokrazy/mkfs
+gok add github.com/ascension-association/galos
 ```
 
 4. If deploying via USB/SD at location /dev/sda: `gok overwrite --full /dev/sda` Otherwise, if you're targeting an already deployed instance: `gok update`
