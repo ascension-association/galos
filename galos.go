@@ -1,6 +1,6 @@
 package main
 
-// sourced from https://gokrazy.org/packages/docker-containers/
+// forked from https://gokrazy.org/packages/docker-containers/
 
 import (
 	"fmt"
@@ -12,44 +12,46 @@ import (
 	"github.com/gokrazy/gokrazy"
 )
 
-var container = "quay.io/podman/hello:latest"
+var container = "docker.io/library/hello-world:latest"
 
-func podman(args ...string) error {
-	podman := exec.Command("/usr/local/bin/podman", args...)
-	podman.Env = expandPath(os.Environ())
-	podman.Env = append(podman.Env, "TMPDIR=/tmp")
-	podman.Stdin = os.Stdin
-	podman.Stdout = os.Stdout
-	podman.Stderr = os.Stderr
-	if err := podman.Run(); err != nil {
-		return fmt.Errorf("%v: %v", podman.Args, err)
+func ctr(args ...string) error {
+	ctr := exec.Command("/usr/local/bin/ctr", args...)
+	ctr.Env = expandPath(os.Environ())
+	ctr.Stdin = os.Stdin
+	ctr.Stdout = os.Stdout
+	ctr.Stderr = os.Stderr
+	if err := ctr.Run(); err != nil {
+		return fmt.Errorf("%v: %v", ctr.Args, err)
 	}
 	return nil
 }
 
 func galos() error {
 	// Ensure we have an up-to-date clock, which in turn also means that
-	// networking is up. This is relevant because podman takes what’s in
-	// /etc/resolv.conf (nothing at boot) and holds on to it, meaning your
-	// container will never have working networking if it starts too early.
+	// networking is up.
 	gokrazy.WaitForClock()
 
-	if err := podman("kill", "galos"); err != nil {
+	if err := ctr("task", "remove", "--force", "galos"); err != nil {
 		log.Print(err)
 	}
 
-	if err := podman("rm", "galos"); err != nil {
+	if err := ctr("snapshot", "remove", "galos"); err != nil {
 		log.Print(err)
 	}
 
-	if err := podman("pull", container); err != nil {
+	if err := ctr("container", "remove", "galos"); err != nil {
 		log.Print(err)
 	}
 
-	if err := podman("run",
-		"--network", "host",
-		"--name", "galos",
-		container); err != nil {
+	if err := ctr("image", "pull", container); err != nil {
+		log.Print(err)
+	}
+
+	if err := ctr("run", "--privileged",
+		"--net-host", "--detach",
+		"--hostname", "galos",
+		"--mount", "type=bind,src=/perm/galos,dst=/perm,options=rbind:rw",
+		container, "galos"); err != nil {
 		return err
 	}
 
@@ -57,13 +59,14 @@ func galos() error {
 }
 
 func main() {
+	makeDirectoryIfNotExists("/perm/galos")
 	if err := galos(); err != nil {
 		log.Fatal(err)
 	}
 }
 
 // expandPath returns env, but with PATH= modified or added
-// such that both /user and /usr/local/bin are included, which podman needs.
+// such that both /user and /usr/local/bin are included, which ctr needs.
 func expandPath(env []string) []string {
 	extra := "/user:/usr/local/bin"
 	found := false
@@ -85,4 +88,12 @@ func expandPath(env []string) []string {
 		env = append(env, fmt.Sprintf("PATH=%s:%s", extra, busyboxDefaultPATH))
 	}
 	return env
+}
+
+// https://gist.github.com/ivanzoid/5040166bb3f0c82575b52c2ca5f5a60c
+func makeDirectoryIfNotExists(path string) error {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return os.Mkdir(path, os.ModeDir|0755)
+	}
+	return nil
 }

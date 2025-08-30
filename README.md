@@ -1,22 +1,29 @@
 # Galos
-Minimal OS to run a Podman container
+Minimal OS to run a containerd container
 
 ### Overview
-Inspired by projects like [CoreOS](https://github.com/coreos), [RancherOS](https://github.com/rancher/os), and [Talos Linux](https://github.com/siderolabs/talos), Galos is a minimal Linux OS powered by [gokrazy](https://github.com/gokrazy/gokrazy) that is primarily designed to run a single [Podman](https://github.com/containers/podman) container on IoT bare metal with as few executables as possible.
+Inspired by projects like [CoreOS](https://github.com/coreos), [RancherOS](https://github.com/rancher/os), and [Talos Linux](https://github.com/siderolabs/talos), Galos is a minimal Linux OS powered by [gokrazy](https://github.com/gokrazy/gokrazy) that is primarily designed to run a single [containerd](https://github.com/containerd/containerd) container on IoT bare metal with as few executables as possible.
 
 _Note: As you probably guessed, the name 'Galos' is a nod to **g**okrazy and T**alos** Linux (unless you're a Sidero Labs lawyer, in which case it's a tribute to the **Gal**ápag**os** Islands)_
 
+### Prerequisites
+1. Install Vim
+
+2. Install Go >= 1.24
+
+3. Run `go install github.com/gokrazy/tools/cmd/gok@main`
+
 ### Instructions
 1. Create a new gokrazy instance: `gok new`
-   
+
+IF running on x86/amd64, run `gok edit` and perform the following then save:
+
+  - add this line under the "Hostname" line: `"KernelPackage": "github.com/gokrazy/kernel.amd64",`
+  - change `"GOARCH=arm64"` to `"GOARCH=amd64"`
+
 2. Add Galos and its dependencies:
 
 ```
-gok add github.com/gokrazy/iptables
-gok add github.com/gokrazy/nsenter
-gok add github.com/gokrazy/podman
-gok add github.com/greenpau/cni-plugins/cmd/cni-nftables-portmap
-gok add github.com/greenpau/cni-plugins/cmd/cni-nftables-firewall
 gok add github.com/gokrazy/mkfs
 gok add github.com/ascension-association/galos
 ```
@@ -31,10 +38,10 @@ gok add github.com/ascension-association/galos
 }
 ```
 
-4. If your target is AMD64, set `"GOARCH=amd64"` and add `"KernelPackage": "github.com/gokrazy/kernel.amd64",` 
+4. If deploying via USB/SD at location /dev/sda: `gok overwrite --full /dev/sda` Otherwise, if you're targeting an already deployed instance: `gok update`
 
-5. If deploying via USB/SD at location /dev/sda: `gok overwrite --full /dev/sda` Otherwise, if you're targeting an already deployed instance: `gok update`
+IF deploying via USB/SD, plug into target device and boot from it. Use the URL provided in the output of the `gok overwrite` step to load in your source machine's browser (note: you may need to replace 'hello' with the IP address of the target device).
 
-6. Verify it worked by going to the gokrazy dashboard, clicking on the `/user/galos` link and reviewing the logs
+5. Verify it worked by going to the gokrazy dashboard, clicking on the `/user/galos` link and reviewing the logs
 
-7. Optionally, once confirmed working, edit your gokrazy config.json again and remove the `"github.com/gokrazy/hello",`, `"github.com/gokrazy/fbstatus",` and `"github.com/gokrazy/mkfs",` packages (and even `"github.com/gokrazy/breakglass",` if you don't need SSH access), then run `gok update` to further minimize the device contents
+6. Optionally, once confirmed working, edit your gokrazy config.json again and remove the `"github.com/gokrazy/hello",`, `"github.com/gokrazy/fbstatus",` and `"github.com/gokrazy/mkfs",` packages (and even `"github.com/gokrazy/breakglass",` if you don't need SSH access), then run `gok update` to further minimize the device contents
