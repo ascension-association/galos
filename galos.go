@@ -31,9 +31,12 @@ func galos() error {
 	// networking is up.
 	gokrazy.WaitForClock()
 
-	task := exec.Command("/usr/local/bin/ctr", "task", "list", "--quiet")
+	task, err := exec.Command("/usr/local/bin/ctr", "task", "list", "--quiet").Output()
+	if err != nil {
+        log.Print(err)
+    }
 
-	if strings.TrimRight(task, "\n") == "galos" {
+	if strings.TrimRight(string(task), "\n") == "galos" {
 	    if err := ctr("task", "remove", "--force", "galos"); err != nil {
 		    log.Print(err)
 	    }
