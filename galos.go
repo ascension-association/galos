@@ -32,21 +32,25 @@ func galos() error {
 	// networking is up.
 	gokrazy.WaitForClock()
 
-	// wait briefly for containerd to initialize
-	time.Sleep(5 * time.Second)
-
-	if err := ctr("task", "remove", "--force", "galos"); err != nil {
+	task, err := ctr("task", "list", "--quiet")
+	if err != nil {
 		log.Print(err)
 	}
 
-	if err := ctr("snapshot", "remove", "galos"); err != nil {
-		log.Print(err)
-	}
+	if strings.TrimRight(task, "\n") == "galos" {
+	    if err := ctr("task", "remove", "--force", "galos"); err != nil {
+		    log.Print(err)
+	    }
 
-	if err := ctr("container", "remove", "galos"); err != nil {
-		log.Print(err)
-	}
+	    if err := ctr("snapshot", "remove", "galos"); err != nil {
+		    log.Print(err)
+	    }
 
+	    if err := ctr("container", "remove", "galos"); err != nil {
+		    log.Print(err)
+	    }
+	}
+	
 	if err := ctr("image", "pull", container); err != nil {
 		log.Print(err)
 	}
