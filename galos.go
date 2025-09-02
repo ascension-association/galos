@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"context"
 	"time"
 
 	"github.com/gokrazy/gokrazy"
@@ -21,6 +22,9 @@ func ctr(args ...string) error {
 	ctr.Stdin = os.Stdin
 	ctr.Stdout = os.Stdout
 	ctr.Stderr = os.Stderr
+	ctx, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
+	defer cancel()
+	ctr = ctr.WithContext(ctx)
 	if err := ctr.Run(); err != nil {
 		return fmt.Errorf("%v: %v", ctr.Args, err)
 	}
@@ -31,16 +35,17 @@ func galos() error {
 	// Ensure we have an up-to-date clock, which in turn also means that
 	// networking is up.
 	gokrazy.WaitForClock()
+	
+	// wait a few seconds for containerd to initialize
+	time.Sleep(3 * time.Second)
 
 	task, err := exec.Command("/usr/local/bin/ctr", "task", "list", "--quiet").Output()
 	if err != nil {
 		log.Print(err)
 	}
-	log.Print(string(task))
-	time.Sleep(1 * time.Second)
-	log.Print(string(task))
+
 	if strings.TrimRight(string(task), "\n") == "galos" {
-		log.Print(string(task))
+		fmt.Printf("blah %v\n", "1")
 	    /*
 	    if err := ctr("task", "remove", "--force", "galos"); err != nil {
 		    log.Print(err)
