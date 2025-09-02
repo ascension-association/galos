@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/gokrazy/gokrazy"
 )
@@ -30,6 +31,9 @@ func galos() error {
 	// Ensure we have an up-to-date clock, which in turn also means that
 	// networking is up.
 	gokrazy.WaitForClock()
+
+	// wait briefly for containerd to initialize
+	time.Sleep(5 * time.Second)
 
 	if err := ctr("task", "remove", "--force", "galos"); err != nil {
 		log.Print(err)
