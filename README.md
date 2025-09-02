@@ -35,6 +35,7 @@ _Note: As you probably guessed, the name 'Galos' is a nod to **g**okrazy and T**
 
 ```
 gok add github.com/gokrazy/mkfs
+gok add github.com/ascension-association/containerd
 gok add github.com/ascension-association/galos
 ```
 
