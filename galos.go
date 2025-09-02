@@ -49,7 +49,7 @@ func galos() error {
 		    log.Print(err)
 	    }
 	}
-	
+
 	if err := ctr("image", "pull", container); err != nil {
 		log.Print(err)
 	}
@@ -74,6 +74,7 @@ func main() {
 	if err := galos(); err != nil {
 		log.Fatal(err)
 	}
+	select {} // run indefinitely
 }
 
 // expandPath returns env, but with PATH= modified or added
