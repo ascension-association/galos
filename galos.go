@@ -47,12 +47,16 @@ func galos() error {
 		log.Print(err)
 	}
 
-	if err := ctr("run", "--privileged",
-		"--net-host", "--detach",
+	if err := ctr("container", "create",
+		"--privileged", "--net-host",
 		"--hostname", "galos",
 		"--mount", "type=bind,src=/perm/galos,dst=/perm,options=rbind:rw",
 		container, "galos"); err != nil {
 		return err
+	}
+
+	if err := ctr("task", "start", "--detach", "galos"); err != nil {
+		log.Print(err)
 	}
 
 	return nil
