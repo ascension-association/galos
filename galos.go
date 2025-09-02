@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/gokrazy/gokrazy"
+	"github.com/ascension-association/containerd"
 )
 
 var container = "docker.io/library/hello-world:latest"
