@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/gokrazy/gokrazy"
 )
@@ -33,8 +34,10 @@ func galos() error {
 
 	task, err := exec.Command("/usr/local/bin/ctr", "task", "list", "--quiet").Output()
 	if err != nil {
-        log.Print(err)
-    }
+		log.Print(err)
+	}
+	log.Print(string(task))
+	time.Sleep(1 * time.Second)
 	log.Print(string(task))
 	if strings.TrimRight(string(task), "\n") == "galos" {
 		log.Print(string(task))
