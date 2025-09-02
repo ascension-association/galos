@@ -17,14 +17,13 @@ import (
 var container = "docker.io/library/hello-world:latest"
 
 func ctr(args ...string) error {
-	ctr := exec.Command("/usr/local/bin/ctr", args...)
+	ctx, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
+	defer cancel()
+	ctr := exec.CommandContext(ctx, "/usr/local/bin/ctr", args...)
 	ctr.Env = expandPath(os.Environ())
 	ctr.Stdin = os.Stdin
 	ctr.Stdout = os.Stdout
 	ctr.Stderr = os.Stderr
-	ctx, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
-	defer cancel()
-	ctr = ctr.WithContext(ctx)
 	if err := ctr.Run(); err != nil {
 		return fmt.Errorf("%v: %v", ctr.Args, err)
 	}
