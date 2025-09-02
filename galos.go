@@ -35,8 +35,10 @@ func galos() error {
 	if err != nil {
         log.Print(err)
     }
-
+	log.Print(string(task))
 	if strings.TrimRight(string(task), "\n") == "galos" {
+		log.Print(string(task))
+	    /*
 	    if err := ctr("task", "remove", "--force", "galos"); err != nil {
 		    log.Print(err)
 	    }
@@ -48,8 +50,9 @@ func galos() error {
 	    if err := ctr("container", "remove", "galos"); err != nil {
 		    log.Print(err)
 	    }
+	    */
 	}
-
+/*
 	if err := ctr("image", "pull", container); err != nil {
 		log.Print(err)
 	}
@@ -65,7 +68,7 @@ func galos() error {
 	if err := ctr("task", "start", "--detach", "galos"); err != nil {
 		log.Print(err)
 	}
-
+*/
 	return nil
 }
 
@@ -74,7 +77,6 @@ func main() {
 	if err := galos(); err != nil {
 		log.Fatal(err)
 	}
-	select {} // run indefinitely
 }
 
 // expandPath returns env, but with PATH= modified or added
