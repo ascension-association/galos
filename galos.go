@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-	"time"
 
 	"github.com/gokrazy/gokrazy"
 )
@@ -32,7 +31,7 @@ func galos() error {
 	// networking is up.
 	gokrazy.WaitForClock()
 
-	task, err := ctr("task", "list", "--quiet")
+	task, err := exec.Command("/usr/local/bin/ctr", "task", "list", "--quiet")
 	if err != nil {
 		log.Print(err)
 	}
