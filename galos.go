@@ -1,96 +1,127 @@
-// https://github.com/containerd/containerd/blob/main/docs/getting-started.md#implementing-your-own-containerd-client
 package main
 
+// forked from https://gokrazy.org/packages/docker-containers/
+
 import (
-	"context"
+	"fmt"
 	"log"
+	"os"
 	"os/exec"
 	"strings"
+	"context"
+	"time"
 
-	"github.com/containerd/containerd/v2/pkg/cio"
-	containerd "github.com/containerd/containerd/v2/client"
-	"github.com/containerd/containerd/v2/pkg/oci"
-	"github.com/containerd/containerd/v2/pkg/namespaces"
+	"github.com/gokrazy/gokrazy"
+	"github.com/go-cmd/cmd"
 )
 
 var container = "docker.io/library/hello-world:latest"
 
+func ctr(args ...string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
+	defer cancel()
+	ctr := exec.CommandContext(ctx, "/usr/local/bin/ctr", args...)
+	ctr.Env = expandPath(os.Environ())
+	ctr.Stdin = os.Stdin
+	ctr.Stdout = os.Stdout
+	ctr.Stderr = os.Stderr
+	if err := ctr.Run(); err != nil {
+		return fmt.Errorf("%v: %v", ctr.Args, err)
+	}
+	return nil
+}
+
+func galos() error {
+	// Ensure we have an up-to-date clock, which in turn also means that
+	// networking is up.
+	gokrazy.WaitForClock()
+
+	// Run foo and block waiting for it to exit
+	c := cmd.NewCmd("ls /")
+	s := <-c.Start()
+
+	// wait a few seconds for containerd to initialize
+	time.Sleep(3 * time.Second)
+
+	task, err := exec.Command("/usr/local/bin/ctr", "task", "list", "--quiet").Output()
+	if err != nil {
+		log.Print(err)
+	}
+
+	fmt.Printf("blah task: %v\n", string(task))
+
+	if strings.TrimRight(string(task), "\n") == "galos" {
+		fmt.Printf("blah %v\n", "1")
+	    /*
+	    if err := ctr("task", "remove", "--force", "galos"); err != nil {
+		    log.Print(err)
+	    }
+
+	    if err := ctr("snapshot", "remove", "galos"); err != nil {
+		    log.Print(err)
+	    }
+
+	    if err := ctr("container", "remove", "galos"); err != nil {
+		    log.Print(err)
+	    }
+	    */
+	}
+/*
+	if err := ctr("image", "pull", container); err != nil {
+		log.Print(err)
+	}
+
+	if err := ctr("container", "create",
+		"--privileged", "--net-host",
+		"--hostname", "galos",
+		"--mount", "type=bind,src=/perm/galos,dst=/perm,options=rbind:rw",
+		container, "galos"); err != nil {
+		return err
+	}
+
+	if err := ctr("task", "start", "--detach", "galos"); err != nil {
+		log.Print(err)
+	}
+*/
+	return nil
+}
+
 func main() {
+	makeDirectoryIfNotExists("/perm/galos")
 	if err := galos(); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func galos() error {
-	// remove prior running instance, if applicable
-	taskList, err := exec.Command("/usr/local/bin/ctr", "--namespace galos", "task", "list", "--quiet").Output()
-	if err != nil {
-		log.Print(err)
-	}
-	if strings.TrimRight(string(taskList), "\n") == "galos" {
-		if err := exec.Command("/usr/local/bin/ctr", "--namespace galos", "task", "remove", "--force", "galos").Run(); err != nil {
-			log.Print(err)
+// expandPath returns env, but with PATH= modified or added
+// such that both /user and /usr/local/bin are included, which ctr needs.
+func expandPath(env []string) []string {
+	extra := "/user:/usr/local/bin"
+	found := false
+	for idx, val := range env {
+		parts := strings.Split(val, "=")
+		if len(parts) < 2 {
+			continue // malformed entry
 		}
-		if err := exec.Command("/usr/local/bin/ctr", "--namespace galos", "snapshot", "remove", "galos").Run(); err != nil {
-			log.Print(err)
+		key := parts[0]
+		if key != "PATH" {
+			continue
 		}
-		if err := exec.Command("/usr/local/bin/ctr", "--namespace galos", "container", "remove", "galos").Run(); err != nil {
-			log.Print(err)
-		}
+		val := strings.Join(parts[1:], "=")
+		env[idx] = fmt.Sprintf("%s=%s:%s", key, extra, val)
+		found = true
 	}
-
-	// create a new client connected to the default socket path for containerd
-	client, err := containerd.New("/run/containerd/containerd.sock")
-	if err != nil {
-		return err
+	if !found {
+		const busyboxDefaultPATH = "/usr/local/sbin:/sbin:/usr/sbin:/usr/local/bin:/bin:/usr/bin"
+		env = append(env, fmt.Sprintf("PATH=%s:%s", extra, busyboxDefaultPATH))
 	}
-	defer client.Close()
+	return env
+}
 
-	// create a new context with namespace
-	ctx := namespaces.WithNamespace(context.Background(), "galos")
-
-	// pull the image
-	image, err := client.Pull(ctx, container, containerd.WithPullUnpack)
-	if err != nil {
-		return err
+// https://gist.github.com/ivanzoid/5040166bb3f0c82575b52c2ca5f5a60c
+func makeDirectoryIfNotExists(path string) error {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return os.Mkdir(path, os.ModeDir|0755)
 	}
-
-	// create a container
-	container, err := client.NewContainer(
-		ctx,
-		"galos",
-		containerd.WithImage(image),
-		containerd.WithNewSnapshot("galos", image),
-		containerd.WithNewSpec(oci.WithImageConfig(image)),
-	)
-	if err != nil {
-		return err
-	}
-	defer container.Delete(ctx, containerd.WithSnapshotCleanup)
-
-	// create a task from the container
-	task, err := container.NewTask(ctx, cio.NewCreator(cio.WithStdio))
-	if err != nil {
-		return err
-	}
-	defer task.Delete(ctx)
-
-	// make sure we wait before calling start
-	exitStatusC, err := task.Wait(ctx)
-	if err != nil {
-		return err
-	}
-	status := <-exitStatusC
-	code, _, err := status.Result()
-	if err != nil {
-		return err
-	}
-	log.Print(code)
-
-	// call start on the task to execute the container
-	if err := task.Start(ctx); err != nil {
-		return err
-	}
-
 	return nil
 }
