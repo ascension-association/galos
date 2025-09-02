@@ -1,12 +1,11 @@
-// https://github.com/containerd/containerd/blob/main/docs/getting-started.md
+// https://github.com/containerd/containerd/blob/main/docs/getting-started.md#implementing-your-own-containerd-client
 package main
 
 import (
 	"context"
-	"fmt"
 	"log"
-	"syscall"
-	"time"
+	"os/exec"
+	"strings"
 
 	"github.com/containerd/containerd/v2/pkg/cio"
 	containerd "github.com/containerd/containerd/v2/client"
@@ -14,13 +13,32 @@ import (
 	"github.com/containerd/containerd/v2/pkg/namespaces"
 )
 
+var container = "docker.io/library/hello-world:latest"
+
 func main() {
-	if err := redisExample(); err != nil {
+	if err := galos(); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func redisExample() error {
+func galos() error {
+	// remove prior running instance, if applicable
+	taskList, err := exec.Command("/usr/local/bin/ctr", "--namespace galos", "task", "list", "--quiet").Output()
+	if err != nil {
+		log.Print(err)
+	}
+	if strings.TrimRight(string(taskList), "\n") == "galos" {
+		if err := exec.Command("/usr/local/bin/ctr", "--namespace galos", "task", "remove", "--force", "galos").Run(); err != nil {
+			log.Print(err)
+		}
+		if err := exec.Command("/usr/local/bin/ctr", "--namespace galos", "snapshot", "remove", "galos").Run(); err != nil {
+			log.Print(err)
+		}
+		if err := exec.Command("/usr/local/bin/ctr", "--namespace galos", "container", "remove", "galos").Run(); err != nil {
+			log.Print(err)
+		}
+	}
+
 	// create a new client connected to the default socket path for containerd
 	client, err := containerd.New("/run/containerd/containerd.sock")
 	if err != nil {
@@ -28,11 +46,11 @@ func redisExample() error {
 	}
 	defer client.Close()
 
-	// create a new context with an "example" namespace
-	ctx := namespaces.WithNamespace(context.Background(), "example")
+	// create a new context with namespace
+	ctx := namespaces.WithNamespace(context.Background(), "galos")
 
-	// pull the redis image from DockerHub
-	image, err := client.Pull(ctx, "docker.io/library/redis:alpine", containerd.WithPullUnpack)
+	// pull the image
+	image, err := client.Pull(ctx, container, containerd.WithPullUnpack)
 	if err != nil {
 		return err
 	}
@@ -40,9 +58,9 @@ func redisExample() error {
 	// create a container
 	container, err := client.NewContainer(
 		ctx,
-		"redis-server",
+		"galos",
 		containerd.WithImage(image),
-		containerd.WithNewSnapshot("redis-server-snapshot", image),
+		containerd.WithNewSnapshot("galos", image),
 		containerd.WithNewSpec(oci.WithImageConfig(image)),
 	)
 	if err != nil {
@@ -62,28 +80,17 @@ func redisExample() error {
 	if err != nil {
 		return err
 	}
-
-	// call start on the task to execute the redis server
-	if err := task.Start(ctx); err != nil {
-		return err
-	}
-
-	// sleep for a lil bit to see the logs
-	time.Sleep(3 * time.Second)
-
-	// kill the process and get the exit status
-	if err := task.Kill(ctx, syscall.SIGTERM); err != nil {
-		return err
-	}
-
-	// wait for the process to fully exit and print out the exit status
-
 	status := <-exitStatusC
 	code, _, err := status.Result()
 	if err != nil {
 		return err
 	}
-	fmt.Printf("redis-server exited with status: %d\n", code)
+	log.Print(code)
+
+	// call start on the task to execute the container
+	if err := task.Start(ctx); err != nil {
+		return err
+	}
 
 	return nil
 }
