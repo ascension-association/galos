@@ -39,6 +39,7 @@ func galos() error {
 	// Run foo and block waiting for it to exit
 	c := cmd.NewCmd("ls /")
 	s := <-c.Start()
+	log.Print(s)
 
 	// wait a few seconds for containerd to initialize
 	time.Sleep(3 * time.Second)
