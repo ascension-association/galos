@@ -2,14 +2,18 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	execute "github.com/alexellis/go-execute/v2"
 	"context"
 )
 
 func main() {
+	// wait a few seconds for containerd to initialize
+	time.Sleep(3 * time.Second)
+
 	cmd := execute.ExecTask{
-		Command:     "ctr",
+		Command:     "/usr/local/bin/ctr",
 		Args:        []string{"version"},
 		StreamStdio: false,
 	}
