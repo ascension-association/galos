@@ -3,18 +3,16 @@ package main
 import (
 	"fmt"
 	"time"
+	"context"
 
 	execute "github.com/alexellis/go-execute/v2"
-	"context"
+	"github.com/gokrazy/gokrazy"
 )
 
-func main() {
-	// wait a few seconds for containerd to initialize
-	time.Sleep(3 * time.Second)
-
+func run(exe string, args ...string) {
 	cmd := execute.ExecTask{
-		Command:     "/usr/local/bin/ctr",
-		Args:        []string{"version"},
+		Command:     exe,
+		Args:        args,
 		StreamStdio: false,
 	}
 
@@ -28,4 +26,14 @@ func main() {
 	}
 
 	fmt.Printf("stdout: %s, stderr: %s, exit-code: %d\n", res.Stdout, res.Stderr, res.ExitCode)
+}
+
+func main() {
+	// wait for network
+	gokrazy.WaitForClock()
+
+	// wait for containerd
+	time.Sleep(3 * time.Second)
+
+	run("/usr/local/bin/ctr", "version")
 }
