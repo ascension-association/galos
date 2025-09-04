@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"context"
 	"log"
+	"os"
 
 	execute "github.com/alexellis/go-execute/v2"
 	"github.com/gokrazy/gokrazy"
@@ -35,7 +36,8 @@ func run(logging bool, exe string, args ...string) {
 }
 
 func main() {
-	log.Print("Initializing...")
+	log.SetOutput(os.Stdout)
+	log.Println("Initializing...")
 
 	// create mount point
 	run(false, "/usr/local/bin/busybox", "mkdir", "-p", "/perm/galos")
