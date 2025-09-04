@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"log"
 	"context"
+	"strings"
 
 	execute "github.com/alexellis/go-execute/v2"
 	"github.com/gokrazy/gokrazy"
 )
 
 var container = "docker.io/library/hello-world:latest"
-//var executable = ""
-//var arguments = ""
+var task = ""
 
 func run(logging bool, exe string, args ...string) {
 	var cmd execute.ExecTask
@@ -63,10 +63,18 @@ func main() {
 	run(false, "/usr/local/bin/ctr", "image", "pull", container)
 
 	// create container
-	log.Println("Creating container...")
-	run(false, "/usr/local/bin/ctr", "container", "create", "--privileged", "--net-host", "--mount", "type=bind,src=/perm/galos,dst=/perm,options=rbind:rw", container, "galos")
+	//log.Println("Creating container...")
+	//run(false, "/usr/local/bin/ctr", "container", "create", "--privileged", "--net-host", "--mount", "type=bind,src=/perm/galos,dst=/perm,options=rbind:rw", container, "galos")
 
 	// run container
 	log.Println("Running container...")
-	run(true, "/usr/local/bin/ctr", "task", "start", "galos")
+	//run(true, "/usr/local/bin/ctr", "task", "start", "galos")
+	if len(task) > 0 {
+		words := strings.Fields(task)
+		command := words
+		args := strings.Join(words[1:], " ")
+		run(true, "/usr/local/bin/ctr", "run", "--rm", "--privileged", "--net-host", "--mount", "type=bind,src=/perm/galos,dst=/perm,options=rbind:rw", container, "galos", command, args)
+	} else {
+		run(true, "/usr/local/bin/ctr", "run", "--rm", "--privileged", "--net-host", "--mount", "type=bind,src=/perm/galos,dst=/perm,options=rbind:rw", container, "galos")
+	}
 }
