@@ -70,11 +70,14 @@ func main() {
 	log.Println("Running container...")
 	//run(true, "/usr/local/bin/ctr", "task", "start", "galos")
 	if len(task) > 0 {
-		words := strings.Fields(task)
-		command := words
-		//args := strings.Join(words[1:], " ")
-		args := words[1:]
-		run(true, "/usr/local/bin/ctr", "run", "--rm", "--privileged", "--net-host", "--mount", "type=bind,src=/perm/galos,dst=/perm,options=rbind:rw", container, "galos", command, args)
+		arr := strings.Fields(task)
+		command := arr[0]
+		args := strings.Join(arr[1:], " ")
+		if len(args) > 0 {
+			run(true, "/usr/local/bin/ctr", "run", "--rm", "--privileged", "--net-host", "--mount", "type=bind,src=/perm/galos,dst=/perm,options=rbind:rw", container, "galos", command, args)
+		} else {
+			run(true, "/usr/local/bin/ctr", "run", "--rm", "--privileged", "--net-host", "--mount", "type=bind,src=/perm/galos,dst=/perm,options=rbind:rw", container, "galos", command)
+		}
 	} else {
 		run(true, "/usr/local/bin/ctr", "run", "--rm", "--privileged", "--net-host", "--mount", "type=bind,src=/perm/galos,dst=/perm,options=rbind:rw", container, "galos")
 	}
