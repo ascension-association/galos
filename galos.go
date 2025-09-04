@@ -72,7 +72,8 @@ func main() {
 	if len(task) > 0 {
 		words := strings.Fields(task)
 		command := words
-		args := strings.Join(words[1:], " ")
+		//args := strings.Join(words[1:], " ")
+		args := words[1:]
 		run(true, "/usr/local/bin/ctr", "run", "--rm", "--privileged", "--net-host", "--mount", "type=bind,src=/perm/galos,dst=/perm,options=rbind:rw", container, "galos", command, args)
 	} else {
 		run(true, "/usr/local/bin/ctr", "run", "--rm", "--privileged", "--net-host", "--mount", "type=bind,src=/perm/galos,dst=/perm,options=rbind:rw", container, "galos")
