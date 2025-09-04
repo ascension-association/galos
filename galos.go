@@ -62,13 +62,8 @@ func main() {
 	log.Println("Pulling container image. Please wait, this may take a while...")
 	run(false, "/usr/local/bin/ctr", "image", "pull", container)
 
-	// create container
-	//log.Println("Creating container...")
-	//run(false, "/usr/local/bin/ctr", "container", "create", "--privileged", "--net-host", "--mount", "type=bind,src=/perm/galos,dst=/perm,options=rbind:rw", container, "galos")
-
 	// run container
 	log.Println("Running container...")
-	//run(true, "/usr/local/bin/ctr", "task", "start", "galos")
 	if len(task) > 0 {
 		arr := strings.Fields(task)
 		command := arr[0]
