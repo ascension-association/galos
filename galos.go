@@ -5,6 +5,7 @@ import (
 	"context"
 	"log"
 	"os"
+	"bytes"
 
 	execute "github.com/alexellis/go-execute/v2"
 	"github.com/gokrazy/gokrazy"
@@ -15,10 +16,14 @@ var container = "docker.io/library/hello-world:latest"
 //var arguments = ""
 
 func run(logging bool, exe string, args ...string) {
+	buf := bytes.NewBuffer(nil)
+
 	cmd := execute.ExecTask{
 		Command:     exe,
 		Args:        args,
 		StreamStdio: false,
+		StdOutWriter: buf,
+		DisableStdioBuffer: true,
 	}
 
 	res, err := cmd.Execute(context.Background())
@@ -31,12 +36,11 @@ func run(logging bool, exe string, args ...string) {
 	}
 
 	if logging {
-		fmt.Printf(res.Stdout)
+		fmt.Printf(buf.String())
 	}
 }
 
 func main() {
-	log.SetOutput(os.Stdout)
 	log.Println("Initializing...")
 
 	// create mount point
@@ -65,4 +69,7 @@ func main() {
 	// show results
 	fmt.Printf("Done:")
 	run(true, "/usr/local/bin/ctr", "task", "exec", "--exec-id", "oneshot", "galos", "ps aux | head -n 2")
+
+	log.SetOutput(os.Stdout)
+	log.Println("Done.")
 }
