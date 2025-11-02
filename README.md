@@ -49,7 +49,7 @@ _Note: if no container is provided, Galos defaults to `docker.io/library/hello-w
 
 ```
 gok add github.com/gokrazy/mkfs
-gok add github.com/ascension-association/containerd
+gok add github.com/ascension-association/gk-containerd
 gok add github.com/ascension-association/galos
 ```
 
